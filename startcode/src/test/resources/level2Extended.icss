@@ -1,0 +1,28 @@
+LinkColor := #ff0000;
+ParWidth := 100px + 200px * 2;
+PlusNumber := 100px + 200px + 2px;
+PlusMinusNumber := 100px + 200px - 2px;
+MinusPlusNumber := 100px - 20px + 2px;
+MultiplyChain := 10px * 10 * 2 * 2;
+VariableCalculationNumber := MultiplyChain - 100px;
+MinusChain := 100px - 20px - 2px;
+PercentageCalc := 50% - 20%;
+AdjustColor := TRUE;
+UseLinkColor := FALSE;
+
+p {
+    background-color: #ffffff;
+    width: ParWidth;
+}
+a {
+    color: LinkColor;
+}
+
+#menu {
+    width: ParWidth + 2 * 10px;
+    height: 2 * 10px + 5px;
+}
+
+.menu {
+    color: #000000;
+}

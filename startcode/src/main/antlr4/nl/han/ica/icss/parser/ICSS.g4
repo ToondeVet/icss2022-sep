@@ -62,8 +62,10 @@ declaration: propertyName COLON expression SEMICOLON;
 propertyName: LOWER_IDENT;
 
 expression
-    : literal
-    | variableReference
+    : expression MUL expression           #multiplyOperation
+    | expression (PLUS | MIN) expression  #addOrSubtractOperation
+    | literal                             #literalExpression
+    | variableReference                   #variableReferenceExpression
     ;
 
 variableReference: CAPITAL_IDENT;

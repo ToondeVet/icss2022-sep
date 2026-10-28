@@ -135,4 +135,30 @@ public class ASTListener extends ICSSBaseListener {
 	public void exitFalseLiteral(ICSSParser.FalseLiteralContext ctx) {
 		currentContainer.peek().addChild(new BoolLiteral(false));
 	}
+
+	@Override
+	public void enterMultiplyOperation(ICSSParser.MultiplyOperationContext ctx) {
+		currentContainer.push(new MultiplyOperation());
+	}
+
+	@Override
+	public void exitMultiplyOperation(ICSSParser.MultiplyOperationContext ctx) {
+		ASTNode operation = currentContainer.pop();
+		currentContainer.peek().addChild(operation);
+	}
+
+	@Override
+	public void enterAddOrSubtractOperation(ICSSParser.AddOrSubtractOperationContext ctx) {
+		if (ctx.PLUS() != null) {
+			currentContainer.push(new AddOperation());
+		} else {
+			currentContainer.push(new SubtractOperation());
+		}
+	}
+
+	@Override
+	public void exitAddOrSubtractOperation(ICSSParser.AddOrSubtractOperationContext ctx) {
+		ASTNode operation = currentContainer.pop();
+		currentContainer.peek().addChild(operation);
+	}
 }
