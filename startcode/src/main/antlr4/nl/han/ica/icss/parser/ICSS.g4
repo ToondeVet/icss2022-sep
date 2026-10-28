@@ -41,13 +41,16 @@ MIN: '-';
 MUL: '*';
 ASSIGNMENT_OPERATOR: ':=';
 
-
-
-
 //--- PARSER: ---
 stylesheet: (variableAssignment | stylerule)* EOF;
 
-stylerule: selector OPEN_BRACE (variableAssignment | declaration)* CLOSE_BRACE;
+stylerule: selector OPEN_BRACE bodyItem* CLOSE_BRACE;
+
+bodyItem: variableAssignment | declaration | ifClause;
+
+ifClause: IF BOX_BRACKET_OPEN expression BOX_BRACKET_CLOSE OPEN_BRACE bodyItem* CLOSE_BRACE elseClause?;
+
+elseClause: ELSE OPEN_BRACE bodyItem* CLOSE_BRACE;
 
 selector
     : LOWER_IDENT  #tagSelector

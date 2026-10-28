@@ -532,4 +532,107 @@ public class Fixtures {
 
         return new AST(stylesheet);
     }
+
+    public static AST uncheckedLevel3Extended() {
+        Stylesheet stylesheet = new Stylesheet();
+
+        // LinkColor := #ff0000;
+        stylesheet.addChild((new VariableAssignment())
+                .addChild(new VariableReference("LinkColor"))
+                .addChild(new ColorLiteral("#ff0000"))
+        );
+        // ParWidth := 500px;
+        stylesheet.addChild((new VariableAssignment())
+                .addChild(new VariableReference("ParWidth"))
+                .addChild(new PixelLiteral("500px"))
+        );
+        // AdjustColor := TRUE;
+        stylesheet.addChild((new VariableAssignment())
+                .addChild(new VariableReference("AdjustColor"))
+                .addChild(new BoolLiteral(true))
+        );
+        // UseLinkColor := FALSE;
+        stylesheet.addChild((new VariableAssignment())
+                .addChild(new VariableReference("UseLinkColor"))
+                .addChild(new BoolLiteral(false))
+        );
+
+        stylesheet.addChild((new Stylerule())
+                .addChild(new TagSelector("p"))
+                // background-color: #ffffff;
+                .addChild((new Declaration("background-color"))
+                        .addChild(new ColorLiteral("#ffffff")))
+                // width: ParWidth;
+                .addChild((new Declaration("width"))
+                        .addChild(new VariableReference("ParWidth")))
+                // if[AdjustColor] { ... }
+                .addChild((new IfClause())
+                        .addChild(new VariableReference("AdjustColor"))
+                        // TestColor := #123456;
+                        .addChild((new VariableAssignment())
+                                .addChild(new VariableReference("TestColor"))
+                                .addChild(new ColorLiteral("#123456")))
+                        // color: TestColor;
+                        .addChild((new Declaration("color"))
+                                .addChild(new VariableReference("TestColor")))
+                        // if[UseLinkColor] { ... } else { ... }
+                        .addChild((new IfClause())
+                                .addChild(new VariableReference("UseLinkColor"))
+                                .addChild((new Declaration("background-color"))
+                                        .addChild(new VariableReference("LinkColor")))
+                                .addChild((new ElseClause())
+                                        .addChild((new Declaration("background-color"))
+                                                .addChild(new ColorLiteral("#000000")))
+                                        // if[TRUE] { ... } else { ... }
+                                        .addChild((new IfClause())
+                                                .addChild(new BoolLiteral(true))
+                                                .addChild((new Declaration("background-color"))
+                                                        .addChild(new VariableReference("LinkColor")))
+                                                .addChild((new ElseClause())
+                                                        .addChild((new Declaration("background-color"))
+                                                                .addChild(new ColorLiteral("#000000")))))))
+                )
+                // if[UseLinkColor] { ... } else { ... }
+                .addChild((new IfClause())
+                        .addChild(new VariableReference("UseLinkColor"))
+                        .addChild((new Declaration("background-color"))
+                                .addChild(new VariableReference("LinkColor")))
+                        .addChild((new ElseClause())
+                                .addChild((new Declaration("background-color"))
+                                        .addChild(new ColorLiteral("#000000")))))
+                // if[FALSE] { }
+                .addChild((new IfClause())
+                        .addChild(new BoolLiteral(false)))
+                // height: 20px;
+                .addChild((new Declaration("height"))
+                        .addChild(new PixelLiteral("20px")))
+        );
+
+        // a { color: LinkColor; }
+        stylesheet.addChild((new Stylerule())
+                .addChild(new TagSelector("a"))
+                .addChild((new Declaration("color"))
+                        .addChild(new VariableReference("LinkColor")))
+        );
+
+        // #menu { width: ParWidth + 20px; }
+        stylesheet.addChild((new Stylerule())
+                .addChild(new IdSelector("#menu"))
+                .addChild((new Declaration("width"))
+                        .addChild((new AddOperation())
+                                .addChild(new VariableReference("ParWidth"))
+                                .addChild(new PixelLiteral("20px"))))
+        );
+
+        // .menu { color: #000000; background-color: LinkColor; }
+        stylesheet.addChild((new Stylerule())
+                .addChild(new ClassSelector(".menu"))
+                .addChild((new Declaration("color"))
+                        .addChild(new ColorLiteral("#000000")))
+                .addChild((new Declaration("background-color"))
+                        .addChild(new VariableReference("LinkColor")))
+        );
+
+        return new AST(stylesheet);
+    }
 }
