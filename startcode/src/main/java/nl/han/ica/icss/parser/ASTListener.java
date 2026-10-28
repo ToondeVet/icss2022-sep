@@ -104,5 +104,35 @@ public class ASTListener extends ICSSBaseListener {
 		int value = Integer.parseInt(ctx.getText().replace("%", ""));
 		currentContainer.peek().addChild(new PercentageLiteral(value));
 	}
-    
+
+	@Override
+	public void enterVariableAssignment(ICSSParser.VariableAssignmentContext ctx) {
+		currentContainer.push(new VariableAssignment());
+	}
+
+	@Override
+	public void exitVariableAssignment(ICSSParser.VariableAssignmentContext ctx) {
+		ASTNode assignment = currentContainer.pop();
+		currentContainer.peek().addChild(assignment);
+	}
+
+	@Override
+	public void exitVariableReference(ICSSParser.VariableReferenceContext ctx) {
+		currentContainer.peek().addChild(new VariableReference(ctx.getText()));
+	}
+
+	@Override
+	public void exitScalarLiteral(ICSSParser.ScalarLiteralContext ctx) {
+		currentContainer.peek().addChild(new ScalarLiteral(Integer.parseInt(ctx.getText())));
+	}
+
+	@Override
+	public void exitTrueLiteral(ICSSParser.TrueLiteralContext ctx) {
+		currentContainer.peek().addChild(new BoolLiteral(true));
+	}
+
+	@Override
+	public void exitFalseLiteral(ICSSParser.FalseLiteralContext ctx) {
+		currentContainer.peek().addChild(new BoolLiteral(false));
+	}
 }
