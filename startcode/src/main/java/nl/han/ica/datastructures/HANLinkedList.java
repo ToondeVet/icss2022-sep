@@ -110,9 +110,13 @@ public class HANLinkedList<T> implements IHANLinkedList<T>{
     public int getSize() {
         HANLinkedListItem<T> listItem = FirstItem;
         int counter = 0;
-        while(listItem.getNext() != null){
-            listItem = listItem.getNext();
+        while(listItem != null){
             counter++;
+            if(listItem.getNext() != null) {
+                listItem = listItem.getNext();
+            } else{
+                return counter;
+            }
         }
         return counter;
     }
