@@ -159,14 +159,147 @@ class CheckerTest {
                 "    InIf := 2px;",
                 "    width: Local;",
                 "  } else {",
-                "    width: InIf;",       // error 1
+                "    width: InIf;",
                 "  }",
-                "  height: InIf;",        // error 2
+                "  height: InIf;",
                 "}",
                 "a {",
-                "  width: Local;",        // error 3
-                "  height: Later;",       // error 4
+                "  width: Local;",
+                "  height: Later;",
                 "}",
                 "Later := 1px;"));
+    }
+
+    // CH03: no colors in operations
+
+    @Test
+    void colorInAdditionIsAnError() {
+        assertErrorCount(1, icss("p { color: #ff0000 + #00ff00; }"));
+    }
+
+    @Test
+    void colorInSubtractionIsAnError() {
+        assertErrorCount(1, icss("p { color: #ff0000 - #00ff00; }"));
+    }
+
+    @Test
+    void colorInMultiplicationIsAnError() {
+        assertErrorCount(1, icss("p { width: #ff0000 * 2; }"));
+    }
+
+    @Test
+    void colorVariableInOperationIsAnError() {
+        assertErrorCount(1, icss(
+                "C := #ff0000;",
+                "p { width: C + 1px; }"));
+    }
+
+    @Test
+    void colorNestedInLargerCalculationIsAnError() {
+        assertErrorCount(1, icss("p { width: 10px + 2 * #ff0000; }"));
+    }
+
+    @Test
+    void colorInVariableAssignmentOperationIsAnError() {
+        assertErrorCount(1, icss("X := #ff0000 + 1px;"));
+    }
+
+    @Test
+    void failedCalculationDoesNotCauseFollowUpErrors() {
+        assertErrorCount(1, icss(
+                "C := #ff0000;",
+                "X := C + 1px;",
+                "p { width: X; }"));
+    }
+
+    @Test
+    void pixelCalculationsAreStillAllowed() {
+        assertNoErrors(icss("p { width: 10px + 5px * 2; }"));
+    }
+
+    @Test
+    void scalarMultiplicationOnEitherSideIsAllowed() {
+        assertNoErrors(icss(
+                "p { width: 2 * 10px; height: 50% * 3; }"));
+    }
+
+// CH04: declaration value matches property
+
+    @Test
+    void colorValueOnWidthIsAnError() {
+        assertErrorCount(1, icss("p { width: #ff0000; }"));
+    }
+
+    @Test
+    void colorValueOnHeightIsAnError() {
+        assertErrorCount(1, icss("p { height: #ff0000; }"));
+    }
+
+    @Test
+    void pixelValueOnColorIsAnError() {
+        assertErrorCount(1, icss("p { color: 12px; }"));
+    }
+
+    @Test
+    void percentageValueOnBackgroundColorIsAnError() {
+        assertErrorCount(1, icss("p { background-color: 50%; }"));
+    }
+
+    @Test
+    void boolValueOnPropertyIsAnError() {
+        assertErrorCount(1, icss(
+                "Flag := TRUE;",
+                "p { width: Flag; }"));
+    }
+
+    @Test
+    void boolLiteralOnPropertyIsAnError() {
+        assertErrorCount(1, icss("p { color: TRUE; }"));
+    }
+
+    @Test
+    void scalarValueOnWidthIsAnError() {
+        assertErrorCount(1, icss("p { width: 3; }"));
+    }
+
+    @Test
+    void calculationResultMustMatchProperty() {
+        assertErrorCount(1, icss("p { color: 10px + 5px; }"));
+    }
+
+    @Test
+    void variableTypeIsCheckedAgainstProperty() {
+        assertErrorCount(1, icss(
+                "Main := #ff0000;",
+                "p { width: Main; }"));
+    }
+
+    @Test
+    void typeErrorInsideIfBodyIsFound() {
+        assertErrorCount(2, icss(
+                "p { if[TRUE] { width: #ff0000; } else { color: 1px; } }"));
+    }
+
+    @Test
+    void validDeclarationsHaveNoErrors() {
+        assertNoErrors(icss(
+                "p {",
+                "  width: 10px;",
+                "  height: 50%;",
+                "  color: #ff0000;",
+                "  background-color: #00ff00;",
+                "}"));
+    }
+
+    @Test
+    void validVariablesAndCalculationsHaveNoErrors() {
+        assertNoErrors(icss(
+                "Main := #ff0000;",
+                "Size := 10px * 2;",
+                "p {",
+                "  color: Main;",
+                "  width: Size + 5px;",
+                "  height: 100% - 20%;",
+                "}"));
     }
 }

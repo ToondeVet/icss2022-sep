@@ -4,6 +4,7 @@ import nl.han.ica.datastructures.HANLinkedList;
 import nl.han.ica.datastructures.IHANLinkedList;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
+import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.types.ExpressionType;
 
 import java.util.ArrayList;
@@ -20,7 +21,6 @@ public class Checker {
         checkStylesheet(ast.root);
     }
 
-    // --- scope helpers ---
     private void openScope() {
         variableTypes.addFirst(new HashMap<>());
     }
@@ -33,7 +33,6 @@ public class Checker {
         variableTypes.getFirst().put(name, type);
     }
 
-    // innermost scope first; returns null if the variable isn't visible
     private ExpressionType lookupVariable(String name) {
         for (int i = 0; i < variableTypes.getSize(); i++) {
             HashMap<String, ExpressionType> scope = variableTypes.get(i);
@@ -90,31 +89,51 @@ public class Checker {
     }
 
     private void checkDeclaration(Declaration declaration) {
-        checkExpression(declaration.expression);
-    }
-
-    private void checkVariableAssignment(VariableAssignment assignment) {
-        // check the right-hand side BEFORE declaring the variable
-        checkExpression(assignment.expression);
-        declareVariable(assignment.name.name, getExpressionType(assignment.expression));
-    }
-
-    // walks an expression and checks every variable reference in it
-    private void checkExpression(Expression expression) {
-        if (expression instanceof VariableReference) {
-            VariableReference ref = (VariableReference) expression;
-            if (lookupVariable(ref.name) == null) {
-                ref.setError("Variable " + ref.name + " is not defined or not in scope");
-            }
-        } else if (expression instanceof Operation) {
-            Operation op = (Operation) expression;
-            checkExpression(op.lhs);
-            checkExpression(op.rhs);
+        ExpressionType type = checkExpression(declaration.expression);
+        if (type == ExpressionType.UNDEFINED) {
+            return;
+        }
+        String property = declaration.property.name;
+        boolean valid;
+        switch (property) {
+            case "width":
+            case "height":
+                valid = type == ExpressionType.PIXEL || type == ExpressionType.PERCENTAGE;
+                break;
+            case "color":
+            case "background-color":
+                valid = type == ExpressionType.COLOR;
+                break;
+            default:
+                valid = true;
+        }
+        if (!valid) {
+            declaration.setError("Property " + property + " cannot have a value of type " + type);
         }
     }
 
-    // minimal version for now; operations are added in CH03
-    private ExpressionType getExpressionType(Expression expression) {
+    private void checkVariableAssignment(VariableAssignment assignment) {
+        ExpressionType type = checkExpression(assignment.expression);
+        declareVariable(assignment.name.name, type);
+    }
+
+    private ExpressionType checkExpression(Expression expression) {
+        if (expression instanceof VariableReference) {
+            VariableReference ref = (VariableReference) expression;
+            ExpressionType type = lookupVariable(ref.name);
+            if (type == null) {
+                ref.setError("Variable " + ref.name + " is not defined or not in scope");
+                return ExpressionType.UNDEFINED;
+            }
+            return type;
+        }
+        if (expression instanceof Operation) {
+            return checkOperation((Operation) expression);
+        }
+        return getLiteralType(expression);
+    }
+
+    private ExpressionType getLiteralType(Expression expression) {
         if (expression instanceof PixelLiteral) return ExpressionType.PIXEL;
         if (expression instanceof PercentageLiteral) return ExpressionType.PERCENTAGE;
         if (expression instanceof ScalarLiteral) return ExpressionType.SCALAR;
@@ -125,6 +144,26 @@ public class Checker {
             return type == null ? ExpressionType.UNDEFINED : type;
         }
         return ExpressionType.UNDEFINED;
+    }
+
+    private ExpressionType checkOperation(Operation operation) {
+        ExpressionType left = checkExpression(operation.lhs);
+        ExpressionType right = checkExpression(operation.rhs);
+
+        if (left == ExpressionType.COLOR || right == ExpressionType.COLOR) {
+            operation.setError("Colors cannot be used in calculations");
+            return ExpressionType.UNDEFINED;
+        }
+        if (left == ExpressionType.UNDEFINED || right == ExpressionType.UNDEFINED) {
+            return ExpressionType.UNDEFINED;
+        }
+
+        if (operation instanceof MultiplyOperation) {
+            if (left == ExpressionType.SCALAR) return right;
+            if (right == ExpressionType.SCALAR) return left;
+            return ExpressionType.UNDEFINED;
+        }
+        return left == right ? left : ExpressionType.UNDEFINED;
     }
 
 }
